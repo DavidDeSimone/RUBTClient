@@ -15,6 +15,14 @@ public class Tracker implements Runnable {
 		
 	}
 
+	/**
+	 * Peer asks for a piece to work on. Update the pieces array.
+	 * @return
+	 */
+	public synchronized int[] assignPiece(TorrentState state) {
+		throw new UnsupportedOperationException("Not implemented");
+	}
+	
 	public List getPeers() {
 		throw new UnsupportedOperationException("Not implemented.");
 	}
