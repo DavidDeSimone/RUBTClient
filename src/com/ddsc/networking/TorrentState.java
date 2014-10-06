@@ -3,6 +3,8 @@ package com.ddsc.networking;
 import java.io.Serializable;
 import java.util.List;
 
+import com.ddsc.giventools.TorrentInfo;
+
 public class TorrentState implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -31,6 +33,10 @@ public class TorrentState implements Serializable {
 		this.tracker_port = tracker_port;
 		this.info_hash = info_hash;
 		this.peer_id = peer_id;
+	}
+	
+	public TorrentState(TorrentInfo info) {
+		
 	}
 
 	public synchronized String getTracker_ip() {
