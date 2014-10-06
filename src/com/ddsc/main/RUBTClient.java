@@ -33,10 +33,14 @@ public class RUBTClient {
 		File torrent = getTorrentFiles(torrentName);
 		byte[] torbytes = getBytesFromTorrent(torrent);
 		
-		//Create the info for this torrent file
+		//Extract the torrent info from the torrent file and capture it to 
+		//an object
 		TorrentInfo tinfo = getTorrentInfoFromTorrent(torbytes);
 		
 		
+		//Create a torrent object that will actually spawn the tracker
+		TorrentState tState = new TorrentState(tState);
+		tState.run();
 		
 		
 	}
