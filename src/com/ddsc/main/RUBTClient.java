@@ -27,8 +27,10 @@ public class RUBTClient {
 	public static void main(String[] args) {
 		checkArgs(args);
 		
-		String torrentName = args[0];
-		String fileName = args[1];
+		//String torrentName = args[0];
+	//	String fileName = args[1];
+		
+		String torrentName = "resources/project2.torrent";
 		
 		File torrent = getTorrentFiles(torrentName);
 		byte[] torbytes = getBytesFromTorrent(torrent);
@@ -39,8 +41,8 @@ public class RUBTClient {
 		
 		
 		//Create a torrent object that will actually spawn the tracker
-		TorrentState tState = new TorrentState(tState);
-		tState.run();
+		TorrentState tState = new TorrentState(tinfo);
+		//tState.run();
 		
 		
 	}
