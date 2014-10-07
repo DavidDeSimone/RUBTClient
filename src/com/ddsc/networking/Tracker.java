@@ -40,6 +40,14 @@ public class Tracker implements Runnable {
 		connection.setRequestMethod("GET");
 		
 		connection.addRequestProperty("info_hash", state.info_hash);
+		connection.addRequestProperty("peer_id", state.peer_id);
+		connection.addRequestProperty("port", state.tracker_port);
+		connection.addRequestProperty("uploaded", String.valueOf(state.uploaded));
+		connection.addRequestProperty("downloaded", String.valueOf(state.downloaded));
+		connection.addRequestProperty("left", String.valueOf(state.left));
+		connection.addRequestProperty("compact", "0");
+		connection.addRequestProperty("no_peer_id", "0");
+		connection.addRequestProperty("event", state.event);
 		
 		int responceCode = connection.getResponseCode();
 		System.out.println("Repsonce: " + responceCode);

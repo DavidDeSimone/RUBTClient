@@ -42,6 +42,8 @@ public class TorrentState implements Serializable {
 		this.info = info;
 		
 		
+		
+		
 		//Form the tracker object for this torrent
 		Tracker tracker = new Tracker(this);
 		tracker.run();
