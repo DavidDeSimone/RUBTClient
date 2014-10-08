@@ -19,7 +19,7 @@ public class Torrent implements Runnable{
 		'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
 		'k'
 		});
-		String ret = byt.toString();
+		String ret = new String(byt.array());
 		return ret;
 	}
 

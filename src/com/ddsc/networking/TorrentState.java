@@ -1,7 +1,7 @@
 package com.ddsc.networking;
 
 import java.io.Serializable;
-import java.nio.charset.Charset;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import com.ddsc.giventools.TorrentInfo;
@@ -47,7 +47,12 @@ public class TorrentState implements Serializable {
 		
 		
 		//Set the TorrentState fields
-		info_hash = new String(info.info_hash.array(), Charset.forName("UTF-8"));
+		try {
+		info_hash = new String(info.info_hash.array(), "ISO-8859-1");
+		System.out.println(info_hash);
+		} catch(UnsupportedEncodingException e) {
+			
+		}
 		peer_id = Torrent.generatePeerId();
 		tracker_port = "6969";
 		uploaded = 0;

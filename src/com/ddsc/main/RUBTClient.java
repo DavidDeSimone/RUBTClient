@@ -30,7 +30,7 @@ public class RUBTClient {
 		//String torrentName = args[0];
 	//	String fileName = args[1];
 		
-		String torrentName = "resources/alt.torrent";
+		String torrentName = "resources/cs322.mp4.torrent";
 		
 		File torrent = getTorrentFiles(torrentName);
 		byte[] torbytes = getBytesFromTorrent(torrent);

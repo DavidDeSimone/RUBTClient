@@ -1,16 +1,37 @@
 package com.ddsc.networking;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.List;
 
-import org.apache.http.client.utils.URIBuilder;
+import com.ddsc.giventools.Bencoder2;
+import com.ddsc.giventools.BencodingException;
 
 public class Tracker implements Runnable {
+	
+	/*
+	 * ByteBuffers for the responce codes returned by the tracker
+	 */
+	protected ByteBuffer FAILURE_REASON = ByteBuffer.wrap(new byte[] {
+		'f', 'a', 'i', 'l', 'u', 'r', 'e', ' ', 'r', 'e', 'a', 's', 'o', 'n'
+	});
+	
+	protected ByteBuffer WARNING_MESSAGE = ByteBuffer.wrap(new byte[] {
+		'w', 'a', 'r', 'n', 'i', 'n', 'g', ' ', 'm', 'e', 's', 's', 'a', 'g', 'e'	
+	});
+	
+	protected ByteBuffer INTERVAL = ByteBuffer.wrap(new byte[] {
+			'i', 'n', 't', 'e', 'r', 'v', 'a', 'l'	
+	});
+	
+	
 
 	//Current state that is driving the tracker
 	protected TorrentState state;
@@ -47,68 +68,85 @@ public class Tracker implements Runnable {
 		
 		
 		
-		URI uri = new URIBuilder()
-		   .setScheme("http")
-		   .setHost(announce.getHost())
-		   .setPort(announce.getPort())
-		   .setPath("/")
-		   .setParameter("info_hash", escape(state.info_hash))
-		   .build();
 		
 		System.out.println("Forming connection to Tracker");
 		System.out.println("Requesting: " + announce);
 		try {
-		HttpURLConnection connection = (HttpURLConnection) announce.openConnection();
+
+			//We will need to form the correct URI to request information
+			//from the tracker
+			
+			StringBuilder sb = new StringBuilder();
+			sb.append(announce);
+			sb.append("?");
+			sb.append("info_hash=");
+			sb.append(escape(state.info_hash));
+			sb.append("&peer_id=");
+			sb.append(escape(state.peer_id));
+			sb.append("&port=");
+			sb.append(escape(state.tracker_port));
+			sb.append("&uploaded="); 
+			sb.append(escape(String.valueOf(state.uploaded)));
+			sb.append("&downloaded=");
+			sb.append(escape(String.valueOf(state.downloaded)));
+			sb.append("&left=");
+			sb.append(escape(String.valueOf(state.left)));
+			sb.append("&event=");
+			sb.append(escape(state.event));
+			
+
+		announce = new URL(sb.toString());
 		
+		System.out.println(announce);
+		//Open the HTTP Request and get the responce.
+		HttpURLConnection connection = (HttpURLConnection) announce.openConnection();
 		connection.setRequestMethod("GET");
 		
-		//All strings sent over the HTTP request must be properly escaped
-		connection.setRequestProperty("info_hash", escape(state.info_hash));
-		connection.setRequestProperty("peer_id", escape(state.peer_id));
-		connection.setRequestProperty("port", escape(state.tracker_port));
-		connection.setRequestProperty("uploaded", escape(String.valueOf(state.uploaded)));
-		connection.setRequestProperty("downloaded", escape(String.valueOf(state.downloaded)));
-		connection.setRequestProperty("left", escape(String.valueOf(state.left)));
-		connection.setRequestProperty("compact", "0");
-		connection.setRequestProperty("no_peer_id", "0");
-		connection.setRequestProperty("event", escape(state.event));
-		
-		
+	
 		int responceCode = connection.getResponseCode();
-		
-		
-		System.out.println(connection.getRequestProperty("failure reason"));
 		System.out.println("Repsonce: " + responceCode);
 		
+		String line;
+		BufferedReader rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+		
+         while ((line = rd.readLine()) != null) {
+        	try {
+        		HashMap<ByteBuffer, Object> map = (HashMap<ByteBuffer, Object>)Bencoder2.decode(line.getBytes());
+  
+        	} catch(BencodingException e) {
+        		e.printStackTrace();
+        	}
+        	 
+            System.out.println(line);
+           
+         }
 		
 		} catch(IOException e) {
 			System.out.println("Error connecting to tracker!");
 			System.exit(1);
-		}
+		} 
 		
 	}
 	
 	
-	/*
-	 * Formats a HTTP Get request URL based off paramaters
-	 * in TorrentState
-	 */
-	
-	
+
 	/*
 	 * Function used to escape strings for the tracker URL requsts.
 	 * This may need to be in another class
 	 */
 	public String escape(String url) {
 		String escaped = null;
-		
+		System.out.println("URL: " + url);
 		try {
 		escaped = URLEncoder.encode(url, "ISO-8859-1");
+		System.out.println(escaped);
 		} catch(UnsupportedEncodingException e) {
 			System.out.println("Unsupported Encoding Exception!");
 		}
 		return escaped;
 	}
+	
+	
 
 	/**
 	 * Peer asks for a piece to work on. Update the pieces array.
