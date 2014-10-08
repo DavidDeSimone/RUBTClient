@@ -27,12 +27,12 @@ public class Peer implements Runnable {
 	protected DataInputStream inputStream;
 	protected DataOutputStream outputStream;
 	
-	protected boolean localChoked;
 	protected boolean remoteChoked;
-	protected boolean localInterested;
 	protected boolean remoteInterested;
 	protected boolean remoteHas[];
 	
+	public volatile boolean localChoked;
+	public volatile boolean localInterested;
 	public volatile boolean endThread;
 	
 	static {
@@ -50,7 +50,6 @@ public class Peer implements Runnable {
 		this.state = state;
 		this.endThread = false;
 		this.tracker = tracker;
-		remoteHas = new int[state.get];
 	}
 	
 	/**
@@ -173,14 +172,30 @@ public class Peer implements Runnable {
 			remoteInterested = false;
 			break;
 		case Message.TYPE_HAVE:
+			remoteHas[message.getPieceIndex()] = true;
+			if (getInterest(remoteHas)) {
+				localInterested = true;
+				sendMessage(Message.MSG_INTERESTED);
+			}
 			break;
 		}
 		return false;
 	}
 
-	protected void sendMessage(Message msgKeepalive) {
-		// TODO Auto-generated method stub
-		
+	protected void sendMessage(Message msg) {
+		try {
+	      if (msg.getId() == Message.TYPE_INTERESTED)
+	          localInterested = true;
+	        if (msg.getId() == Message.TYPE_NOT_INTERESTED)
+	          localInterested = false;
+	        if (msg.getId() == Message.TYPE_CHOKE)
+	          remoteChoked = true;
+	        if (msg.getId() == Message.TYPE_UNCHOKE)
+	          remoteChoked = false;
+			Message.write(outputStream, msg);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

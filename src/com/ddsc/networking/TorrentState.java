@@ -30,6 +30,8 @@ public class TorrentState implements Serializable {
 	protected String event;
 	protected PieceState[] localHas;
 	
+	public final int numPieces;
+	
 	// Obtained from tracker
 	protected int interval;
 	protected List<Peer> peers;
@@ -60,7 +62,8 @@ public class TorrentState implements Serializable {
 		
 		
 		// Initialize the pieces state array
-		localHas = new PieceState[info.piece_hashes.length];
+		this.numPieces = info.piece_hashes.length;
+		this.localHas = new PieceState[numPieces];
 		for(int i = 0; i < localHas.length; i++) {
 			localHas[i] = PieceState.NOT_STARTED;
 		}
