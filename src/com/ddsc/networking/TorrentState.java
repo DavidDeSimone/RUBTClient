@@ -31,6 +31,9 @@ public class TorrentState implements Serializable {
 	//Generate torrentInfo object for this torrent
 	protected TorrentInfo info;
 	
+	//Reference to the torrent file for this state
+	protected Torrent torrent;
+	
 	public TorrentState(String tracker_ip, String tracker_port, String info_hash, String peer_id) {
 		this.tracker_ip = tracker_ip;
 		this.tracker_port = tracker_port;
@@ -41,14 +44,12 @@ public class TorrentState implements Serializable {
 	public TorrentState(TorrentInfo info) {
 		this.info = info;
 		
+		//Set the TorrentState fields
 		
 		
-		
-		//Form the tracker object for this torrent
-		Tracker tracker = new Tracker(this);
-		tracker.run();
-		
-		
+		//Spawn and run the torrent for this state
+		torrent = new Torrent(this);
+		torrent.run();
 	}
 	
 	public synchronized TorrentInfo getTorrentInfo() {

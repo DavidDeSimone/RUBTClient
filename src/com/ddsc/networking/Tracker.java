@@ -18,6 +18,16 @@ public class Tracker implements Runnable {
 	//List of peers
 	protected List<Peer> peers;
 	
+	//List of values returned in a Tracker HTTP responce
+	//Time between sending regular requests to the tracker
+	protected int interval;
+	
+	//Id of the tracker we are talking to
+	protected String tracker_id;
+	
+	//Number of seeders sent by the tracker
+	protected int num_seeders;
+	
 	public Tracker(TorrentState state) {
 		this.state = state;
 	}
