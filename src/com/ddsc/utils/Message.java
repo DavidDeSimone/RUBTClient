@@ -1,4 +1,8 @@
+package edu.rutgers.sakai.java.util;
+
+import java.util.Arrays;
 import java.io.*;
+
 
 public class Message {
 
@@ -6,16 +10,16 @@ public class Message {
 	private int length;
 	private byte id;
 	
-	public static byte t_keep_alive = -1;
-	public static byte t_choke = 0;
-	public static byte t_unchoke = 1;
-	public static byte t_interested = 2;
-	public static byte t_not_interested = 3;
-	public static byte t_have = 3;
-	public static byte t_bitfield = 5;
-	public static byte t_request = 6;
-	public static byte t_piece = 7;
-	public static byte t_cancel = 8;
+	public static final byte t_keep_alive = -1;
+	public static final byte t_choke = 0;
+	public static final byte t_unchoke = 1;
+	public static final byte t_interested = 2;
+	public static final byte t_not_interested = 3;
+	public static final byte t_have = 3;
+	public static final byte t_bitfield = 5;
+	public static final byte t_request = 6;
+	public static final byte t_piece = 7;
+	public static final byte t_cancel = 8;
 	
 	public static String[] Message_t_names = { "Choke", "Unchoke",
 		"Interested", "Not Interested", "Have", "Bitfield", "Request",
@@ -67,7 +71,7 @@ public class Message {
 		this.length = length;
 	}
 	
-	public static Message read(InputStream in) throws IOException {
+	public static Message read( InputStream in) throws IOException {
 		DataInputStream data_in = new DataInputStream(in);
 		
 		int data_length = data_in.readInt();
@@ -77,6 +81,62 @@ public class Message {
 		else if (data_length < 0 || data_length > 131081) 
 			 throw new IllegalArgumentException("Invalid Message Size, Max 128Kb");
 		
+		byte msg_type = data_in.readByte();
+		
+		// Return Null if next byte is invalid
+		
+		if (data_length == 1){
+			switch (msg_type){
+			case t_choke:
+				return choke;
+			case t_unchoke:
+				return unchoke;
+			case t_interested:
+				return interested;
+			case t_not_interested:
+				return not_interested;
+		    default:
+		    	throw new IOException(
+		    			"Unexpected Message of length 1");
+			}
+		}
+		else if (msg_type == t_have && data_length == 5) {
+				int piece = data_in.readInt();
+				return new HaveMessage(piece);
+			}
+		else if (msg_type == t_request && data_length == 13) {
+				int piece_index = data_in.readInt();
+				int block_offset = data_in.readInt();
+				int block_length = data_in.readInt();
+				return new RequestMessage(piece_index, block_offset, block_length);
+			}
+		else if (msg_type == t_piece && data_length >= 9){
+				int index = data_in.readInt();
+				int offset = data_in.readInt();
+				int piece_length = data_length - 9;
+				byte [] piece = new byte[piece_length];
+				data_in.readFully(piece);
+				
+				return new PieceMessage(index, offset, piece);
+			}
+		else if (msg_type == t_cancel && data_length == 13){
+				int index = data_in.readInt();
+				int offset = data_in.readInt();
+				int piece_length = data_in.readInt();
+				
+				return new CancelMessage(index, offset, piece_length);
+			}
+		else if (msg_type == t_bitfield) {
+			    byte[] bitfield = new byte[data_length -1 ];
+			    data_in.readFully(bitfield);
+			    boolean[] bools = BitToBoolean.convert(bitfield);
+			    return new BitfieldMessage(bools);
+			}
+		
+		
+		
+		
+		}
 		
 		
 		
