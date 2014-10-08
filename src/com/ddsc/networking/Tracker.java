@@ -3,8 +3,11 @@ package com.ddsc.networking;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.List;
 
 public class Tracker implements Runnable {
@@ -31,6 +34,7 @@ public class Tracker implements Runnable {
 	 */
 	private void getTrackerInfoFromUrl() {
 		URL announce = state.info.announce_url;
+		
 		
 		System.out.println("Forming connection to Tracker");
 		System.out.println("Requesting: " + announce);
@@ -67,6 +71,22 @@ public class Tracker implements Runnable {
 			System.exit(1);
 		}
 		
+	}
+	
+	
+	/*
+	 * Function used to escape strings for the tracker URL requsts.
+	 * This may need to be in another class
+	 */
+	public String escape(String url) {
+		String escaped = null;
+		
+		try {
+		escaped = URLEncoder.encode(url, "ISO-8859-1");
+		} catch(UnsupportedEncodingException e) {
+			System.out.println("Unsupported Encoding Exception!");
+		}
+		return escaped;
 	}
 
 	/**
