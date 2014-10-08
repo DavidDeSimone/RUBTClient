@@ -1,5 +1,7 @@
 package com.ddsc.networking;
 
+import java.nio.ByteBuffer;
+
 public class Torrent implements Runnable{
 
 	private TorrentState state;
@@ -9,6 +11,16 @@ public class Torrent implements Runnable{
 		
 		
 		
+	}
+	
+	public static String generatePeerId() {
+		ByteBuffer byt = ByteBuffer.wrap(new byte[] {
+		'1', '2', '3', '4', '5', '6', '7', '8', '9', 'a',
+		'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+		'k'
+		});
+		String ret = new String(byt.array());
+		return ret;
 	}
 
 	@Override

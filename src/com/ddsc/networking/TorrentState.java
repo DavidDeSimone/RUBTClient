@@ -1,6 +1,7 @@
 package com.ddsc.networking;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import com.ddsc.giventools.TorrentInfo;
@@ -42,8 +43,20 @@ public class TorrentState implements Serializable {
 	public TorrentState(TorrentInfo info) {
 		this.info = info;
 		
-		//Set the TorrentState fields
 		
+		//Set the TorrentState fields
+		try {
+		info_hash = new String(info.info_hash.array(), "ISO-8859-1");
+		System.out.println(info_hash);
+		} catch(UnsupportedEncodingException e) {
+			
+		}
+		peer_id = Torrent.generatePeerId();
+		tracker_port = "6969";
+		uploaded = 0;
+		downloaded = 0;
+		left = info.file_length;
+		event = "started";
 		
 		
 		// Initialize the pieces state array
@@ -58,35 +71,7 @@ public class TorrentState implements Serializable {
 		t.run();
 	}
 	
-	public synchronized PieceState[] getPieceState() {
-		return localHas;
-	}
-	
-	/**
-	 * A peer reports that it wishes to begin download a piece. Update the record of pieces.
-	 * @param num piece to be downloaded
-	 * @return true if this piece is needed, false if it is done or in progress
-	 */
-	public synchronized boolean lockPiece(int num) {
-		if (localHas[num] == PieceState.NOT_STARTED) {
-			localHas[num] = PieceState.STARTED;
-			return true;
-		}
-		return false;
-	}
-	
-	/**
-	 * A peer reports that it has finished a piece. Update the record of pieces.
-	 * @param num piece that was finished
-	 */
-	public synchronized void gotPiece(int num) {
-		if (localHas[num] == PieceState.STARTED) {
-			localHas[num] = PieceState.DONE;
-		} else {
-			throw new IllegalStateException("Finished a piece that wasn't started.");
-		}
-	}
-	
+
 	public synchronized TorrentInfo getTorrentInfo() {
 		return info;
 	}
