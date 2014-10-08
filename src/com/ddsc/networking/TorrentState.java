@@ -7,6 +7,10 @@ import com.ddsc.giventools.TorrentInfo;
 
 public class TorrentState implements Serializable {
 
+	public enum PieceState {
+		NOT_STARTED, STARTED, DONE
+	}
+	
 	private static final long serialVersionUID = 1L;
 	
 	// Obtained from .torrent file
@@ -23,6 +27,7 @@ public class TorrentState implements Serializable {
 	protected int downloaded;
 	protected int left;
 	protected String event;
+	protected PieceState[] localHas;
 	
 	// Obtained from tracker
 	protected int interval;
@@ -34,23 +39,52 @@ public class TorrentState implements Serializable {
 	//Reference to the torrent file for this state
 	protected Torrent torrent;
 	
-	public TorrentState(String tracker_ip, String tracker_port, String info_hash, String peer_id) {
-		this.tracker_ip = tracker_ip;
-		this.tracker_port = tracker_port;
-		this.info_hash = info_hash;
-		this.peer_id = peer_id;
-	}
-	
 	public TorrentState(TorrentInfo info) {
 		this.info = info;
 		
 		//Set the TorrentState fields
 		
 		
+		
+		// Initialize the pieces state array
+		localHas = new PieceState[info.piece_hashes.length];
+		for(int i = 0; i < localHas.length; i++) {
+			localHas[i] = PieceState.NOT_STARTED;
+		}
+		
 		//Spawn and run the torrent for this state
 		torrent = new Torrent(this);
 		Thread t = new Thread(torrent);
 		t.run();
+	}
+	
+	public synchronized PieceState[] getPieceState() {
+		return localHas;
+	}
+	
+	/**
+	 * A peer reports that it wishes to begin download a piece. Update the record of pieces.
+	 * @param num piece to be downloaded
+	 * @return true if this piece is needed, false if it is done or in progress
+	 */
+	public synchronized boolean lockPiece(int num) {
+		if (localHas[num] == PieceState.NOT_STARTED) {
+			localHas[num] = PieceState.STARTED;
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * A peer reports that it has finished a piece. Update the record of pieces.
+	 * @param num piece that was finished
+	 */
+	public synchronized void gotPiece(int num) {
+		if (localHas[num] == PieceState.STARTED) {
+			localHas[num] = PieceState.DONE;
+		} else {
+			throw new IllegalStateException("Finished a piece that wasn't started.");
+		}
 	}
 	
 	public synchronized TorrentInfo getTorrentInfo() {
