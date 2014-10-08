@@ -133,6 +133,13 @@ public class Peer implements Runnable {
 			}
 		}, KEEPALIVE_INTERVAL, KEEPALIVE_INTERVAL);
 		
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				
+			}
+		}).start();
+		
 		Message message = null;
 		while(!endThread) {
 			try {
