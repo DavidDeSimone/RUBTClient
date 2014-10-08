@@ -183,18 +183,20 @@ public class Peer implements Runnable {
 	}
 
 	protected void sendMessage(Message msg) {
-		try {
-	      if (msg.getId() == Message.TYPE_INTERESTED)
-	          localInterested = true;
-	        if (msg.getId() == Message.TYPE_NOT_INTERESTED)
-	          localInterested = false;
-	        if (msg.getId() == Message.TYPE_CHOKE)
-	          remoteChoked = true;
-	        if (msg.getId() == Message.TYPE_UNCHOKE)
-	          remoteChoked = false;
-			Message.write(outputStream, msg);
-		} catch (IOException e) {
-			e.printStackTrace();
+		synchronized(outputStream) {
+			try {
+		      if (msg.getId() == Message.TYPE_INTERESTED)
+		          localInterested = true;
+		        if (msg.getId() == Message.TYPE_NOT_INTERESTED)
+		        if (msg.getId() == Message.TYPE_CHOKE)
+		          remoteChoked = true;
+		        if (msg.getId() == Message.TYPE_UNCHOKE)
+		          remoteChoked = false;
+		        Message.write(outputStream, msg);
+		     
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
