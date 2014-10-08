@@ -31,7 +31,35 @@ public class Tracker implements Runnable {
 			'i', 'n', 't', 'e', 'r', 'v', 'a', 'l'	
 	});
 	
+	protected ByteBuffer TRACKER_ID = ByteBuffer.wrap(new byte[] {
+			't', 'r', 'a', 'c', 'k', 'e', 'r', ' ', 'i', 'd'
+	});
 	
+	protected ByteBuffer COMPLETE = ByteBuffer.wrap(new byte[] {
+		'c', 'o', 'm', 'p', 'l', 'e', 't', 'e'	
+	});
+	
+	protected ByteBuffer INCOMPLETE = ByteBuffer.wrap(new byte[] {
+		'i', 'n', 'c', 'o', 'm', 'p', 'l', 'e', 't', 'e'	
+	});
+	
+	protected ByteBuffer PEERS = ByteBuffer.wrap(new byte[] {
+			'p', 'e', 'e', 'r', 's'
+	});
+	
+	protected  ByteBuffer IP = ByteBuffer.wrap(new byte[] { 
+			'i', 'p' });
+
+
+	protected  ByteBuffer PORT = ByteBuffer.wrap(new byte[] { 
+		'p','o', 'r', 't' });
+
+
+    protected  ByteBuffer PEERID = ByteBuffer.wrap(new byte[] {
+	'p', 'e', 'e', 'r', ' ', 'i', 'd' });
+
+
+
 
 	//Current state that is driving the tracker
 	protected TorrentState state;
@@ -97,7 +125,7 @@ public class Tracker implements Runnable {
 
 		announce = new URL(sb.toString());
 		
-		System.out.println(announce);
+		
 		//Open the HTTP Request and get the responce.
 		HttpURLConnection connection = (HttpURLConnection) announce.openConnection();
 		connection.setRequestMethod("GET");
@@ -109,10 +137,22 @@ public class Tracker implements Runnable {
 		String line;
 		BufferedReader rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 		
+		
+		//Read in the trackers response
          while ((line = rd.readLine()) != null) {
         	try {
+        		//The tracker will return a Hashmap of const ByteBuffers and objects
         		HashMap<ByteBuffer, Object> map = (HashMap<ByteBuffer, Object>)Bencoder2.decode(line.getBytes());
-  
+        		
+        		List<HashMap<ByteBuffer, Object>> peer = (List<HashMap<ByteBuffer, Object>>)map.get(PEERS);
+        		
+        		for(HashMap<ByteBuffer, Object> pe: peer) {
+        			ByteBuffer buff = (ByteBuffer)pe.get(PEERID);
+        			
+        			System.out.println(new String(buff.array()));
+        		}
+        		
+        		
         	} catch(BencodingException e) {
         		e.printStackTrace();
         	}
@@ -136,10 +176,8 @@ public class Tracker implements Runnable {
 	 */
 	public String escape(String url) {
 		String escaped = null;
-		System.out.println("URL: " + url);
 		try {
 		escaped = URLEncoder.encode(url, "ISO-8859-1");
-		System.out.println(escaped);
 		} catch(UnsupportedEncodingException e) {
 			System.out.println("Unsupported Encoding Exception!");
 		}

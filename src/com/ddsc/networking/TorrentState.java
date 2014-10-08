@@ -9,7 +9,7 @@ import com.ddsc.giventools.TorrentInfo;
 public class TorrentState implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	// Obtained from .torrent file
 	protected String tracker_ip;
 	protected String tracker_port;
@@ -18,40 +18,42 @@ public class TorrentState implements Serializable {
 	// Determined by client
 	protected String peer_id;
 	protected String own_port;
-	
+
 	// Current state
 	protected int uploaded;
 	protected int downloaded;
 	protected int left;
 	protected String event;
-	
+
 	// Obtained from tracker
 	protected int interval;
 	protected List<Peer> peers;
 	
-	//Generate torrentInfo object for this torrent
+	//Number of pieces of the torrent file
+	protected int num_pieces;
+
+	// Generate torrentInfo object for this torrent
 	protected TorrentInfo info;
-	
-	//Reference to the torrent file for this state
+
+	// Reference to the torrent file for this state
 	protected Torrent torrent;
-	
-	public TorrentState(String tracker_ip, String tracker_port, String info_hash, String peer_id) {
+
+	public TorrentState(String tracker_ip, String tracker_port,
+			String info_hash, String peer_id) {
 		this.tracker_ip = tracker_ip;
 		this.tracker_port = tracker_port;
 		this.info_hash = info_hash;
 		this.peer_id = peer_id;
 	}
-	
+
 	public TorrentState(TorrentInfo info) {
 		this.info = info;
-		
-		
-		//Set the TorrentState fields
+
+		// Set the TorrentState fields
 		try {
-		info_hash = new String(info.info_hash.array(), "ISO-8859-1");
-		System.out.println(info_hash);
-		} catch(UnsupportedEncodingException e) {
-			
+			info_hash = new String(info.info_hash.array(), "ISO-8859-1");
+		} catch (UnsupportedEncodingException e) {
+			System.out.println("Please support ISO-8859-1");
 		}
 		peer_id = Torrent.generatePeerId();
 		tracker_port = "6969";
@@ -59,14 +61,16 @@ public class TorrentState implements Serializable {
 		downloaded = 0;
 		left = info.file_length;
 		event = "started";
+
+		num_pieces = info.piece_hashes.length;
 		
-		//Spawn and run the torrent for this state
+		
+		// Spawn and run the torrent for this state
 		torrent = new Torrent(this);
 		Thread t = new Thread(torrent);
 		t.run();
 	}
-	
-	
+
 	public synchronized TorrentInfo getTorrentInfo() {
 		return info;
 	}
@@ -158,5 +162,5 @@ public class TorrentState implements Serializable {
 	public synchronized void setPeers(List peers) {
 		this.peers = peers;
 	}
-	
+
 }
