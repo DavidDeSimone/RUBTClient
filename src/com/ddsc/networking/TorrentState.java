@@ -49,7 +49,8 @@ public class TorrentState implements Serializable {
 		
 		//Spawn and run the torrent for this state
 		torrent = new Torrent(this);
-		torrent.run();
+		Thread t = new Thread(torrent);
+		t.run();
 	}
 	
 	public synchronized TorrentInfo getTorrentInfo() {

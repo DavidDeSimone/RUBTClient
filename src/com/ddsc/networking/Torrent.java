@@ -16,7 +16,8 @@ public class Torrent implements Runnable{
 		// TODO Auto-generated method stub
 		//Form the tracker object for this torrent
 				Tracker tracker = new Tracker(state);
-				tracker.run();
+				Thread t = new Thread(tracker);
+				t.run();
 	}
 	
 	
