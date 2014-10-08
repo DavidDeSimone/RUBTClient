@@ -1,14 +1,14 @@
 package com.ddsc.networking;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.List;
+
+import org.apache.http.client.utils.URIBuilder;
 
 public class Tracker implements Runnable {
 
@@ -46,6 +46,15 @@ public class Tracker implements Runnable {
 		URL announce = state.info.announce_url;
 		
 		
+		
+		URI uri = new URIBuilder()
+		   .setScheme("http")
+		   .setHost(announce.getHost())
+		   .setPort(announce.getPort())
+		   .setPath("/")
+		   .setParameter("info_hash", escape(state.info_hash))
+		   .build();
+		
 		System.out.println("Forming connection to Tracker");
 		System.out.println("Requesting: " + announce);
 		try {
@@ -53,27 +62,23 @@ public class Tracker implements Runnable {
 		
 		connection.setRequestMethod("GET");
 		
-		connection.addRequestProperty("info_hash", state.info_hash);
-		connection.addRequestProperty("peer_id", state.peer_id);
-		connection.addRequestProperty("port", state.tracker_port);
-		connection.addRequestProperty("uploaded", String.valueOf(state.uploaded));
-		connection.addRequestProperty("downloaded", String.valueOf(state.downloaded));
-		connection.addRequestProperty("left", String.valueOf(state.left));
-		connection.addRequestProperty("compact", "0");
-		connection.addRequestProperty("no_peer_id", "0");
-		connection.addRequestProperty("event", state.event);
+		//All strings sent over the HTTP request must be properly escaped
+		connection.setRequestProperty("info_hash", escape(state.info_hash));
+		connection.setRequestProperty("peer_id", escape(state.peer_id));
+		connection.setRequestProperty("port", escape(state.tracker_port));
+		connection.setRequestProperty("uploaded", escape(String.valueOf(state.uploaded)));
+		connection.setRequestProperty("downloaded", escape(String.valueOf(state.downloaded)));
+		connection.setRequestProperty("left", escape(String.valueOf(state.left)));
+		connection.setRequestProperty("compact", "0");
+		connection.setRequestProperty("no_peer_id", "0");
+		connection.setRequestProperty("event", escape(state.event));
+		
 		
 		int responceCode = connection.getResponseCode();
+		
+		
+		System.out.println(connection.getRequestProperty("failure reason"));
 		System.out.println("Repsonce: " + responceCode);
-		
-		BufferedReader in = new BufferedReader(
-		        new InputStreamReader(connection.getInputStream()));
-		
-		String beEncode;
-		
-		while((beEncode = in.readLine()) != null) {
-			System.out.println(beEncode);
-		}
 		
 		
 		} catch(IOException e) {
@@ -82,6 +87,12 @@ public class Tracker implements Runnable {
 		}
 		
 	}
+	
+	
+	/*
+	 * Formats a HTTP Get request URL based off paramaters
+	 * in TorrentState
+	 */
 	
 	
 	/*

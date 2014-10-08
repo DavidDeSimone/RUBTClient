@@ -1,6 +1,7 @@
 package com.ddsc.networking;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import com.ddsc.giventools.TorrentInfo;
@@ -44,14 +45,22 @@ public class TorrentState implements Serializable {
 	public TorrentState(TorrentInfo info) {
 		this.info = info;
 		
-		//Set the TorrentState fields
 		
+		//Set the TorrentState fields
+		info_hash = new String(info.info_hash.array(), Charset.forName("UTF-8"));
+		peer_id = Torrent.generatePeerId();
+		tracker_port = "6969";
+		uploaded = 0;
+		downloaded = 0;
+		left = info.file_length;
+		event = "started";
 		
 		//Spawn and run the torrent for this state
 		torrent = new Torrent(this);
 		Thread t = new Thread(torrent);
 		t.run();
 	}
+	
 	
 	public synchronized TorrentInfo getTorrentInfo() {
 		return info;
