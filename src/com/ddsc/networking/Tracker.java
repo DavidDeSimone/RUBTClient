@@ -19,43 +19,43 @@ public class Tracker implements Runnable {
 	/*
 	 * ByteBuffers for the responce codes returned by the tracker
 	 */
-	protected ByteBuffer FAILURE_REASON = ByteBuffer.wrap(new byte[] {
+	protected static ByteBuffer FAILURE_REASON = ByteBuffer.wrap(new byte[] {
 		'f', 'a', 'i', 'l', 'u', 'r', 'e', ' ', 'r', 'e', 'a', 's', 'o', 'n'
 	});
 	
-	protected ByteBuffer WARNING_MESSAGE = ByteBuffer.wrap(new byte[] {
+	protected static ByteBuffer WARNING_MESSAGE = ByteBuffer.wrap(new byte[] {
 		'w', 'a', 'r', 'n', 'i', 'n', 'g', ' ', 'm', 'e', 's', 's', 'a', 'g', 'e'	
 	});
 	
-	protected ByteBuffer INTERVAL = ByteBuffer.wrap(new byte[] {
+	protected static ByteBuffer INTERVAL = ByteBuffer.wrap(new byte[] {
 			'i', 'n', 't', 'e', 'r', 'v', 'a', 'l'	
 	});
 	
-	protected ByteBuffer TRACKER_ID = ByteBuffer.wrap(new byte[] {
+	protected static ByteBuffer TRACKER_ID = ByteBuffer.wrap(new byte[] {
 			't', 'r', 'a', 'c', 'k', 'e', 'r', ' ', 'i', 'd'
 	});
 	
-	protected ByteBuffer COMPLETE = ByteBuffer.wrap(new byte[] {
+	protected static ByteBuffer COMPLETE = ByteBuffer.wrap(new byte[] {
 		'c', 'o', 'm', 'p', 'l', 'e', 't', 'e'	
 	});
 	
-	protected ByteBuffer INCOMPLETE = ByteBuffer.wrap(new byte[] {
+	protected static ByteBuffer INCOMPLETE = ByteBuffer.wrap(new byte[] {
 		'i', 'n', 'c', 'o', 'm', 'p', 'l', 'e', 't', 'e'	
 	});
 	
-	protected ByteBuffer PEERS = ByteBuffer.wrap(new byte[] {
+	protected static ByteBuffer PEERS = ByteBuffer.wrap(new byte[] {
 			'p', 'e', 'e', 'r', 's'
 	});
 	
-	protected  ByteBuffer IP = ByteBuffer.wrap(new byte[] { 
+	protected static ByteBuffer IP = ByteBuffer.wrap(new byte[] { 
 			'i', 'p' });
 
 
-	protected  ByteBuffer PORT = ByteBuffer.wrap(new byte[] { 
+	protected static ByteBuffer PORT = ByteBuffer.wrap(new byte[] { 
 		'p','o', 'r', 't' });
 
 
-    protected  ByteBuffer PEERID = ByteBuffer.wrap(new byte[] {
+    protected static ByteBuffer PEERID = ByteBuffer.wrap(new byte[] {
 	'p', 'e', 'e', 'r', ' ', 'i', 'd' });
 
 
@@ -77,7 +77,10 @@ public class Tracker implements Runnable {
 	//Number of seeders sent by the tracker
 	protected int num_seeders;
 	
-	public Tracker(TorrentState state) {
+	//Torrent the tracker represents
+	protected Torrent torrent;
+	
+	public Tracker(TorrentState state, Torrent torrent) {
 		this.state = state;
 	}
 	
@@ -147,6 +150,8 @@ public class Tracker implements Runnable {
         		List<HashMap<ByteBuffer, Object>> peer = (List<HashMap<ByteBuffer, Object>>)map.get(PEERS);
         		
         		for(HashMap<ByteBuffer, Object> pe: peer) {
+        			
+        			checkCandidate(pe);
         			ByteBuffer buff = (ByteBuffer)pe.get(PEERID);
         			
         			System.out.println(new String(buff.array()));
@@ -168,6 +173,21 @@ public class Tracker implements Runnable {
 		
 	}
 	
+	public void checkCandidate(HashMap<ByteBuffer, Object> peer) {
+		ByteBuffer id = (ByteBuffer)peer.get(PEERID);
+		String name = new String(id.array());
+		
+		if(name.length() < 6) {
+			return;
+		}
+		
+		String prefix = name.substring(0, 6);
+		if(prefix.equals("RUBT11")) {
+			torrent.spawnPeer(peer, this);
+		}
+		
+		
+	}
 	
 
 	/*
@@ -185,14 +205,6 @@ public class Tracker implements Runnable {
 	}
 	
 	
-
-	/**
-	 * Peer asks for a piece to work on. Update the pieces array.
-	 * @return
-	 */
-	public synchronized int[] assignPiece(TorrentState state) {
-		throw new UnsupportedOperationException("Not implemented");
-	}
 	
 	public List<Peer> getPeers() {
 		throw new UnsupportedOperationException("Not implemented.");
