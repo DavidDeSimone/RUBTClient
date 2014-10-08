@@ -1,7 +1,10 @@
 package com.ddsc.networking;
 
 import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Set;
 
 import com.ddsc.giventools.TorrentInfo;
 
@@ -10,8 +13,6 @@ public class TorrentState implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	// Obtained from .torrent file
-	protected String tracker_ip;
-	protected String tracker_port;
 	protected String info_hash;
 
 	// Determined by client
@@ -26,33 +27,15 @@ public class TorrentState implements Serializable {
 	
 	// Obtained from tracker
 	protected int interval;
-	protected List peers;
+	protected Set<InetSocketAddress> peers;
 	
-	public TorrentState(String tracker_ip, String tracker_port, String info_hash, String peer_id) {
-		this.tracker_ip = tracker_ip;
-		this.tracker_port = tracker_port;
+	public TorrentState(String info_hash, String peer_id) {
 		this.info_hash = info_hash;
 		this.peer_id = peer_id;
 	}
 	
 	public TorrentState(TorrentInfo info) {
 		
-	}
-
-	public synchronized String getTracker_ip() {
-		return tracker_ip;
-	}
-
-	public synchronized void setTracker_ip(String tracker_ip) {
-		this.tracker_ip = tracker_ip;
-	}
-
-	public synchronized String getTracker_port() {
-		return tracker_port;
-	}
-
-	public synchronized void setTracker_port(String tracker_port) {
-		this.tracker_port = tracker_port;
 	}
 
 	public synchronized String getInfo_hash() {
@@ -119,12 +102,17 @@ public class TorrentState implements Serializable {
 		this.interval = interval;
 	}
 
-	public synchronized List getPeers() {
+	public synchronized Set<InetSocketAddress> getPeers() {
 		return peers;
 	}
 
-	public synchronized void setPeers(List peers) {
-		this.peers = peers;
+	public synchronized void updatePeers(Set<InetSocketAddress> remove, Set<InetSocketAddress> add) {
+		if (remove != null) {
+			peers.removeAll(remove);
+		}
+		if (add != null) {
+			peers.addAll(add);
+		}
 	}
 	
 }

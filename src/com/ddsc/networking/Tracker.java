@@ -1,17 +1,49 @@
 package com.ddsc.networking;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.URI;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import org.apache.http.client;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
 public class Tracker implements Runnable {
 
-	protected TorrentState state;
+	public static final long DEFAULT_INTERVAL = 60000L;
+	public static final int DEFAULT_TIMEOUT = 5000;
 	
-	public Tracker(TorrentState state) {
+	protected InetSocketAddress addr;
+	protected TorrentState state;
+	protected List<InetSocketAddress> peers;
+	protected Socket socket;
+	
+	public Tracker(InetSocketAddress addr, TorrentState state) {
+		this.addr = addr;
 		this.state = state;
 	}
 	
 	public void run() {
-		// TODO Auto-generated method stub
+		long period = DEFAULT_INTERVAL;
+		Timer timer = new Timer();
+		timer.scheduleAtFixedRate(new TimerTask() {
+
+			@Override
+			public void run() {
+				try {
+					Socket socket = new Socket(addr.getAddress(), addr.getPort());
+					socket.setSoTimeout(DEFAULT_TIMEOUT);
+					socket.getInputStream();
+					socket.getOutputStream();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			
+		}, period, period);
 		
 	}
 
@@ -23,7 +55,21 @@ public class Tracker implements Runnable {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 	
-	public List getPeers() {
-		throw new UnsupportedOperationException("Not implemented.");
+	private void updatePeerList() {
+		URI uri = new URIBuilder()
+			.setScheme("http")
+			.setHost(addr.getHostName())
+			.setPath("/")
+			.setParameter("","")
+			.build();
+		HttpGet httpget = new HttpGet(uri);
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public List<InetSocketAddress> getPeerList() {
+		return peers;
 	}
 }
